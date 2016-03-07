@@ -48,7 +48,7 @@ def lwlrTest(testArr,xArr,yArr,k=1.0):  #loops over all the data points and appl
         wr = lwlr(testArr[i],xArr,yArr,k)
         if(wr != None):
             yHat[i] = testArr[i] * wr
-        else:
+        else
             break
     return yHat
 
