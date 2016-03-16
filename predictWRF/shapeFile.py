@@ -2,6 +2,7 @@ import os
 import os.path
 import myDebug
 import re
+import numpy as np
 
 def listAllFiles(fullPath):
 
@@ -48,7 +49,7 @@ def shapeWrfIOfile(fileList, fileExt, keyWord):
     return wrfIODict
 
 
-def shapeWrfComputingfile(fileList):
+def shapeWrfComputingfile(fileList, maxFlag=False):
     #To be enhance, now it is fixed
     #Read .000file to konw the computing size
     #read .0 file to know task number and consumed time
@@ -69,7 +70,7 @@ def shapeWrfComputingfile(fileList):
             tmpList = fillComputList(domainNum, writeNum, taskNum, compInfo, os.path.dirname(filePath))
             if not tmpList:
                 return
-            wrfComputeList = fillwrfComputeList(wrfComputeList, tmpList)
+            wrfComputeList = fillwrfComputeList(wrfComputeList, tmpList, maxFlag)
         currentDir = os.path.dirname(filePath)
         #read .000 file
         if os.path.splitext(filePath)[1] == wrfOutFileExt:
@@ -122,7 +123,7 @@ def shapeWrfComputingfile(fileList):
         tmpList = fillComputList(domainNum, writeNum, taskNum, compInfo, os.path.dirname(filePath))
         if not tmpList:
             return
-        wrfComputeList = fillwrfComputeList(wrfComputeList, tmpList)
+        wrfComputeList = fillwrfComputeList(wrfComputeList, tmpList, maxFlag)
     return wrfComputeList              
             
 def fillComputList(domainNum, writeNum, taskNum, compInfo, currentDir):
@@ -137,13 +138,40 @@ def fillComputList(domainNum, writeNum, taskNum, compInfo, currentDir):
             tmpComputeList.append(tmpList)   
     return tmpComputeList
 
-def fillwrfComputeList(wrfComputeList, tmpList):
+def fillwrfComputeList(wrfComputeList, tmpList, maxFlag):
     #task 0 seems very special, so I seperate it, it may change in future, it is not a good machine learning method here
     if not wrfComputeList:
         wrfComputeList.append([tmpList[0]])
-        wrfComputeList.append(tmpList[1:])
+        if not maxFlag:   
+            wrfComputeList.append(tmpList[1:])
+        else:
+            wrfComputeList.append(getMaxList(tmpList[1:]))
     else:
         wrfComputeList[0].extend([tmpList[0]])
-        wrfComputeList[1].extend(tmpList[1:])
+        if not maxFlag:   
+            wrfComputeList[1].extend(tmpList[1:])
+        else:
+            wrfComputeList[1].extend(getMaxList(tmpList[1:]))
     return wrfComputeList
 
+def getMaxList(tmpList):
+    maxList0 = []
+    maxList1 = []
+    
+    for element in tmpList:
+        if len(maxList0) == 0:
+            maxList0.append(element)
+            continue
+        else:
+            if float(element[2]) > float(maxList0[0][2]):
+                tmpElement = maxList0.pop()
+                maxList0.append(element)
+                element = tmpElement
+        if len(maxList1) == 0:
+            maxList1.append(element)
+        else:
+            if float(element[3]) > float(maxList1[0][3]):
+                maxList1.pop()
+                maxList1.append(element)
+    maxList0.extend(maxList1)
+    return maxList0
