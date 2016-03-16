@@ -66,7 +66,10 @@ def shapeWrfComputingfile(fileList):
 
     for filePath in fileList:
         if currentDir != "" and currentDir != os.path.dirname(filePath):# change folder, save current data
-            wrfComputeList.extend(fillComputList(domainNum, writeNum, taskNum, compInfo, currentDir))
+            tmpList = fillComputList(domainNum, writeNum, taskNum, compInfo, os.path.dirname(filePath))
+            if not tmpList:
+                return
+            wrfComputeList = fillwrfComputeList(wrfComputeList, tmpList)
         currentDir = os.path.dirname(filePath)
         #read .000 file
         if os.path.splitext(filePath)[1] == wrfOutFileExt:
@@ -96,7 +99,7 @@ def shapeWrfComputingfile(fileList):
             fillF = False
             count = 0
             for line in fr.readlines():
-                if fillF:
+                if fillF:#start to fill the tasks information into the list
                     tmpData = line.split() 
                     compInfo.append([float(tmpData[2]) - float(tmpData[1]), float(tmpData[1])])
                     count += 1
@@ -116,7 +119,10 @@ def shapeWrfComputingfile(fileList):
             fr.close()
     #last dataset to be filled
     if filePath != "":
-        wrfComputeList.extend(fillComputList(domainNum, writeNum, taskNum, compInfo, os.path.dirname(filePath)))
+        tmpList = fillComputList(domainNum, writeNum, taskNum, compInfo, os.path.dirname(filePath))
+        if not tmpList:
+            return
+        wrfComputeList = fillwrfComputeList(wrfComputeList, tmpList)
     return wrfComputeList              
             
 def fillComputList(domainNum, writeNum, taskNum, compInfo, currentDir):
@@ -126,8 +132,18 @@ def fillComputList(domainNum, writeNum, taskNum, compInfo, currentDir):
     else:
         #print("Domanin:%d   WriteNum:%d   TaskNum:%d" %(domainNum, writeNum, taskNum))
         for i in range(0,taskNum):
-            tmpList = [taskNum, writeNum/domainNum]
+            tmpList = [taskNum, writeNum/domainNum - 1]#writeNum/domainNum is the true write time, but seems the first write is a specaill write shall not be caculated
             tmpList.extend(compInfo[i])
             tmpComputeList.append(tmpList)   
     return tmpComputeList
+
+def fillwrfComputeList(wrfComputeList, tmpList):
+    #task 0 seems very special, so I seperate it, it may change in future, it is not a good machine learning method here
+    if not wrfComputeList:
+        wrfComputeList.append([tmpList[0]])
+        wrfComputeList.append(tmpList[1:])
+    else:
+        wrfComputeList[0].extend([tmpList[0]])
+        wrfComputeList[1].extend(tmpList[1:])
+    return wrfComputeList
 
