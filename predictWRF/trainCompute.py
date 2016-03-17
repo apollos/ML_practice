@@ -58,20 +58,21 @@ for taskIdx in range(0,1):
                 for idx in range(0, len(bestKList)):
                     if rssE < bestKList[idx][0]:
                         bestKList.insert(idx, [rssE, k])
-                        if len(bestKList) > 10: #save 10 top k
+                        if len(bestKList) > 50: #save 50 top k
                             bestKList.pop()
                         break
         print bestKList
         for kElement in bestKList:
             taskPredict = 0
             #get the result for cared data
-            xCheckMat = mat([myUtils.getConstantValue(), 200, 180])
+            xCheckMat = mat([myUtils.getConstantValue(), 400, 180])
             wr = regression.lwlr(xCheckMat,xMat,yMatArray[yIdx].T,kElement[1])
             if (wr != None):
                 #print wr
                 taskPredict = xCheckMat * wr
                 #print taskPredict
                 print "Result is %f with k %f" % (taskPredict, kElement[1])
+                print wr
                 break
         #taskPredict = regression.lwlrTest(xCheckMat,xMat,yCommMat.T,bestK)
         #print taskCoeff
