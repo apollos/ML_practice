@@ -26,7 +26,7 @@ if not testDataList:
 #generate traing dataset
 #task 0 first
 
-for taskIdx in range(0,2):
+for taskIdx in range(0,1):
     xMat, yMatArray = myUtils.getMatfromList(trainDataList[taskIdx])
     xTMat, yTMatArray = myUtils.getMatfromList(testDataList[taskIdx])
     print "Start compute taskIdx %d:" % taskIdx
@@ -36,12 +36,12 @@ for taskIdx in range(0,2):
         invalidKNum = 0
         invalidKMin = inf
         invalidKMax = 0.009
-        aliveCount = 0
-        for k in arange(100, 0.009, -0.01):##find best k  
+        #aliveCount = 0
+        for k in arange(30, 5, -0.01):##find best k  
         #for k in arange(27, 26, -2):##find best k  
-            if aliveCount % 1000 == 0:
-                print "I am alive!"
-            aliveCount += 1
+        #    if aliveCount % 1000 == 0:
+        #        print "I am alive!"
+        #    aliveCount += 1
             yAssume = regression.lwlrTest(xTMat,xMat,yMatArray[yIdx].T,k)
             if yAssume.all() == 0:
                 #print("%s  %d: regression.lwlr failed by k = %f." %(myDebug.file(), myDebug.line(), k))
