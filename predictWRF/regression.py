@@ -88,7 +88,7 @@ def ridgeTest(xArr,yArr):
     return wMat
 
 def regularize(xMat):#regularize by columns
-    inMat = xMat.copy()
+    inMat = xMat#xMat.copy()
     inMeans = mean(inMat,0)   #calc mean then subtract it off
     inVar = var(inMat,0)      #calc variance of Xi then divide by it
     inMat = (inMat - inMeans)/inVar
