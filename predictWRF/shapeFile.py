@@ -49,28 +49,30 @@ def shapeWrfIOfile(fileList, fileExt, keyWord):
     return wrfIODict
 
 
-def shapeWrfComputingfile(fileList, maxFlag=False):
+def shapeWrfComputingfile(fileList):
     #To be enhance, now it is fixed
     #Read .000file to konw the computing size
     #read .0 file to know task number and consumed time
     wrfOutFileExt = ".0000"
     wrfProfileExt = ".0"
-    wrfComputeList = []#4 columns task number, computing hours, consumed computing time, consumed communication time
+    wrfComputeList = []#4 columns: task number, nTaskX, nTaskY, consumed computing time, consumed communication time
     taskNumMark = "Data for MPI rank"
 
     domainNum = 0
     writeNum = 0
     taskNum = 0
+    nTaskX = np.inf
+    nTaskY = np.inf
     compInfo = []
     currentDir = ""
     filePath = ""
 
     for filePath in fileList:
         if currentDir != "" and currentDir != os.path.dirname(filePath):# change folder, save current data
-            tmpList = fillComputList(domainNum, writeNum, taskNum, compInfo, os.path.dirname(filePath))
+            tmpList = fillComputList(domainNum, writeNum, taskNum, nTaskX, nTaskY, compInfo, os.path.dirname(filePath))
             if not tmpList:
                 return
-            wrfComputeList = fillwrfComputeList(wrfComputeList, tmpList, maxFlag)
+            wrfComputeList = fillwrfComputeList(wrfComputeList, tmpList)
         currentDir = os.path.dirname(filePath)
         #read .000 file
         if os.path.splitext(filePath)[1] == wrfOutFileExt:
@@ -84,10 +86,20 @@ def shapeWrfComputingfile(fileList, maxFlag=False):
                     tmpStr = line[line.find(dataKey)+len(dataKey):]
                     pattern = re.compile(r'\D*(\d+):\D*(\d+\.*\d*)') # not good, I will change it by word segmetation method
                     match = pattern.findall(tmpStr)
-                    if len(match) > 0 and len(match[0]) == 2:
+                    if len(match[0]) == 2:
                         if int(match[0][0]) > domainNum:
                             domainNum = int(match[0][0])
                         writeNum += 1
+                    else:
+                        print("%s  %d: Error Pattern [%s]" %(myDebug.file(), myDebug.line(), line))
+                if (line.lower().find("ntasks") >= 0):
+                    tmpStr = line
+                    #Ntasks in X  5 , ntasks in Y  8
+                    pattern = re.compile(r'\D*(\d+)\ *,\D*(\d+)') # not good, I will change it by word segmetation method
+                    match = pattern.findall(tmpStr)
+                    if len(match[0]) == 2:
+                        nTaskX = int(match[0][0])
+                        nTaskY = int(match[0][1])
                     else:
                         print("%s  %d: Error Pattern [%s]" %(myDebug.file(), myDebug.line(), line))
             fr.close()
@@ -102,7 +114,7 @@ def shapeWrfComputingfile(fileList, maxFlag=False):
             for line in fr.readlines():
                 if fillF:#start to fill the tasks information into the list
                     tmpData = line.split() 
-                    compInfo.append([float(tmpData[2]) - float(tmpData[1]), float(tmpData[1])])
+                    compInfo.append([float(tmpData[2]) - float(tmpData[1]), float(tmpData[1])])#Computing time, communication time
                     count += 1
                     if count == taskNum:
                         fillF = False #end
@@ -120,58 +132,31 @@ def shapeWrfComputingfile(fileList, maxFlag=False):
             fr.close()
     #last dataset to be filled
     if filePath != "":
-        tmpList = fillComputList(domainNum, writeNum, taskNum, compInfo, os.path.dirname(filePath))
+        tmpList = fillComputList(domainNum, writeNum, taskNum, nTaskX, nTaskY, compInfo, os.path.dirname(filePath))
         if not tmpList:
             return
-        wrfComputeList = fillwrfComputeList(wrfComputeList, tmpList, maxFlag)
+        wrfComputeList = fillwrfComputeList(wrfComputeList, tmpList)
     return wrfComputeList              
             
-def fillComputList(domainNum, writeNum, taskNum, compInfo, currentDir):
+def fillComputList(domainNum, writeNum, taskNum, nTaskX, nTaskY, compInfo, currentDir):
     tmpComputeList = []
-    if domainNum == 0 or writeNum == 0 or writeNum%domainNum != 0 or taskNum ==0 or not compInfo:
+    if domainNum == 0 or writeNum == 0 or writeNum%domainNum != 0 or taskNum ==0 or nTaskX == np.inf or nTaskY == np.inf or not compInfo:
         print("%s  %d: Failed read profiling information in %s [Domanin:%d   WriteNum:%d   TaskNum:%d]" %(myDebug.file(), myDebug.line(), currentDir, domainNum, writeNum, taskNum))
     else:
         #print("Domanin:%d   WriteNum:%d   TaskNum:%d" %(domainNum, writeNum, taskNum))
         for i in range(0,taskNum):
-            tmpList = [taskNum, writeNum/domainNum - 1]#writeNum/domainNum is the true write time, but seems the first write is a specaill write shall not be caculated
+            tmpList = [taskNum, nTaskX, nTaskY, writeNum/domainNum - 1]#writeNum/domainNum is the true write time, but seems the first write is a specaill write shall not be caculated
             tmpList.extend(compInfo[i])
             tmpComputeList.append(tmpList)   
     return tmpComputeList
 
-def fillwrfComputeList(wrfComputeList, tmpList, maxFlag):
+def fillwrfComputeList(wrfComputeList, tmpList):
     #task 0 seems very special, so I seperate it, it may change in future, it is not a good machine learning method here
     if not wrfComputeList:
         wrfComputeList.append([tmpList[0]])
-        if not maxFlag:   
-            wrfComputeList.append(tmpList[1:])
-        else:
-            wrfComputeList.append(getMaxList(tmpList[1:]))
+        wrfComputeList.append(tmpList[1:])
     else:
         wrfComputeList[0].extend([tmpList[0]])
-        if not maxFlag:   
-            wrfComputeList[1].extend(tmpList[1:])
-        else:
-            wrfComputeList[1].extend(getMaxList(tmpList[1:]))
+        wrfComputeList[1].extend(tmpList[1:])
     return wrfComputeList
 
-def getMaxList(tmpList):
-    maxList0 = []
-    maxList1 = []
-    
-    for element in tmpList:
-        if len(maxList0) == 0:
-            maxList0.append(element)
-            continue
-        else:
-            if float(element[2]) > float(maxList0[0][2]):
-                tmpElement = maxList0.pop()
-                maxList0.append(element)
-                element = tmpElement
-        if len(maxList1) == 0:
-            maxList1.append(element)
-        else:
-            if float(element[3]) > float(maxList1[0][3]):
-                maxList1.pop()
-                maxList1.append(element)
-    maxList0.extend(maxList1)
-    return maxList0
