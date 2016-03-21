@@ -4,7 +4,7 @@ constantValue = 1
 def getConstantValue():
     return constantValue
 
-def getXandYMatfromList(infoList):
+def getXandYMatfromList(infoList, yclomnNum):
     m = len(infoList)
     n = len(infoList[0])
     xMat = []
@@ -14,7 +14,7 @@ def getXandYMatfromList(infoList):
         tmpX = [constantValue]
         tmpY = []
         for i in range(0, n):
-            if(i < n-2):
+            if(i < n-yclomnNum):
                 tmpX.append(elem[i])
             else:
                 tmpY.append(elem[i])

@@ -145,8 +145,7 @@ def fillComputList(domainNum, writeNum, taskNum, nTaskX, nTaskY, compInfo, curre
     else:
         #print("Domanin:%d   WriteNum:%d   TaskNum:%d" %(domainNum, writeNum, taskNum))
         for i in range(0,taskNum):
-            #tmpList = [taskNum, nTaskX, nTaskY, writeNum/domainNum - 1]#writeNum/domainNum is the true write time, but seems the first write is a specaill write shall not be caculated
-            tmpList = [taskNum, writeNum/domainNum - 1]
+            tmpList = [taskNum, nTaskX, nTaskY, writeNum/domainNum - 1]#writeNum/domainNum is the true write time, but seems the first write is a specaill write shall not be caculated
             tmpList.extend(compInfo[i])
             tmpComputeList.append(tmpList)   
     return tmpComputeList

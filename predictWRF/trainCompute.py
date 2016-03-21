@@ -33,24 +33,17 @@ print "%d, %d, %d" % (len(testDataList), len(testDataList[0]), len(testDataList[
 print testDataList
 exit(1)
 '''
-xCheckMat = mat([myUtils.getConstantValue(), 400, 180], dtype = float)
-for taskIdx in range(0,2):
-    xMat, yMat = myUtils.getXandYMatfromList(trainDataList[taskIdx])
-    xTMat, yTMat = myUtils.getXandYMatfromList(testDataList[taskIdx])
+
+for taskIdx in range(1,2):
+    xMat, yMat = myUtils.getXandYMatfromList(trainDataList[taskIdx], 2)
+    xTMat, yTMat = myUtils.getXandYMatfromList(testDataList[taskIdx], 2)
     xMat = mat(xMat, dtype = float)
     xTMat = mat(xTMat, dtype = float)
+    yMat = mat(yMat, dtype = float)
+    yTMat = mat(yTMat, dtype = float)
     #Regularize the matrix 
-    xMean = mean(xMat[:, 1:], 0)
-    xVar = var(xMat[:, 1:], 0)
-    yMean = mean(yMat, 0)
-    xMat[:, 1:] = (xMat[:, 1:] - xMean)/xVar #regression.regularize(xMat[:, 1:])
-    xTMat[:, 1:] = (xTMat[:, 1:] - xMean)/xVar #regression.regularize(xTMat[:, 1:])
-    yMat = yMat - mean(yMat, 0)
-    yTMat = yTMat - mean(yMat, 0)    #note, the mean shall be yMat but not yTMat
-    potentialK = [0.07, 0.3, 0.1, 0.7, 3, 10, 28, 40, 60, 80, 100]#[100, 80, 60, 40, 28, 10, 3, 0.7, 0.3, 0.07, 0.01]
-
-    
-    xCheckMat[:, 1:] = (xCheckMat[:, 1:] - xMean)/xVar
+    xMat[:, 1:], xMeans, xStd = regression.regularize(xMat[:, 1:])         
+    xTMat[:, 1:] = (xTMat[:, 1:] - xMeans)/xStd
 
     print "Start compute taskIdx %d:" % taskIdx
     
@@ -59,19 +52,13 @@ for taskIdx in range(0,2):
         invalidKNum = 0
         invalidKMin = inf
         invalidKMax = 0.009
-        #aliveCount = 0
-        yMatTmp = list(zip(*yMat)[yIdx])
-        yTMatTmp = list(zip(*yTMat)[yIdx])
+
+        yMatTmp = yMat[:, yIdx]     
+        yTMatTmp = yTMat[:, yIdx]     
         
-        #for k in arange(10, 0.0009, -0.001):##find best k  
-        for k in potentialK:##find best k  
-        #    if aliveCount % 1000 == 0:
-        #        print "I am alive!"
-        #    aliveCount += 1
-            
-            yAssume = regression.lwlrTest(xTMat,xMat,yMatTmp,k)
-            #print yAssume, yMean[yIdx], yTMatTmp
-            yAssume += yMean[yIdx]
+        for k in arange(5, 0.09, -0.1):##find best k              
+            yAssume = regression.lwlrTest(xTMat,xMat,yMatTmp.T,k)
+            print k
             if yAssume.all() == 0:
                 #print("%s  %d: regression.lwlr failed by k = %f." %(myDebug.file(), myDebug.line(), k))
                 invalidKNum += 1
@@ -79,9 +66,11 @@ for taskIdx in range(0,2):
                     invalidKMax = k
                 if k < invalidKMin:
                     invalidKMin = k
-                continue            
-            rssE = regression.rssError(yTMatTmp, yAssume)
-
+                continue        
+            #transfer Mat to list
+            yTList = yTMatTmp.reshape(-1).tolist() 
+            yTList = [j for i in yTList for j in i]   
+            rssE = regression.rssError(yTList, yAssume)            
             if len(bestKList) == 0:
                 bestKList.insert(0, [rssE, k])
             else:
@@ -92,21 +81,7 @@ for taskIdx in range(0,2):
                             bestKList.pop()
                         break
         print bestKList
-        '''
-        for kElement in bestKList:
-            taskPredict = 0
-            #get the result for cared data
-            #xCheckMat = mat([myUtils.getConstantValue(), 200, 10, 20, 180], dtype = float)            
-            #print xCheckMat
-            wr = regression.lwlr(xCheckMat, xMat,yMatTmp,kElement[1])
-            if (wr != None):
-                #print wr
-                taskPredict = xCheckMat * wr + yMean[yIdx]
-                #print taskPredict
-                print "Result[%d] is %f with k %f" % (yIdx, taskPredict, kElement[1])
-                print wr
-                break                       
-        '''
+        
 
 
 

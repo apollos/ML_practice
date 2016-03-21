@@ -24,55 +24,59 @@ if not trainDataList:
 print "%d, %d, %d" % (len(trainDataList), len(trainDataList[0]), len(trainDataList[1]))
 print trainDataList
 print "==========================="
-print "%d, %d, %d" % (len(testDataList), len(testDataList[0]), len(testDataList[1]))
-print testDataList
 exit(1)
 '''
-bestKList = [0.07, 0.3, 0.1, 0.7, 3, 10, 28, 40, 60, 80, 100]#[100, 80, 60, 40, 28, 10, 3, 0.7, 0.3, 0.07, 0.01]    
-predictHourList = [6, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 180, 200]
+bestKList = [0.6, 0.8, 0.7, 0.9, 1, 0.5, 0.4, 0.2, 1.1, 1.2, 1.3]#[100, 80, 60, 40, 28, 10, 3, 0.7, 0.3, 0.07, 0.01]    
+predictHourList = [6, 180]
+predictTaskSizeList = range(40, 440, 20)
 predictHours = predictHourList[0]
 predictList = []
-for tTSize in range(40, 440, 20):
-    xCheckMat = mat([myUtils.getConstantValue(), tTSize, predictHours], dtype = float)
+for tTSize in predictTaskSizeList:
+    taskX = int(sqrt(tTSize))
+    while(tTSize % taskX != 0):
+        taskX -= 1
+    taskY = tTSize/taskX
+    xCheckMat = mat([myUtils.getConstantValue(), tTSize, taskX, taskY, predictHours], dtype = float)
+
     preDictPerTask = []
-    for taskIdx in range(0,2):
-        xMat, yMat = myUtils.getXandYMatfromList(trainDataList[taskIdx])
-        xMat = mat(xMat, dtype = float)
+    for taskIdx in range(1,2):
+        xMat, yMat = myUtils.getXandYMatfromList(trainDataList[taskIdx], 2)
+        xMat = mat(xMat, dtype = float)        
+        yMat = mat(yMat, dtype = float)
+
         #Regularize the matrix 
-        xMean = mean(xMat[:, 1:], 0)
-        xVar = var(xMat[:, 1:], 0)
-        yMean = mean(yMat, 0)
-        xMat[:, 1:] = (xMat[:, 1:] - xMean)/xVar #regression.regularize(xMat[:, 1:])
-        yMat = yMat - mean(yMat, 0)
-       
-        xCheckMat[:, 1:] = (xCheckMat[:, 1:] - xMean)/xVar
-        #print "Start compute taskIdx %d:" % (taskIdx)
-        #print  xMean, xVar
+        xMat[:, 1:], xMeans, xStd = regression.regularize(xMat[:, 1:])         
+        xCheckMat[:, 1:] = (xCheckMat[:, 1:] - xMeans)/xStd
         
         preDictPerComponent = []
         for yIdx in range(0, 2): #caculate computing result and then communication result
-            yMatTmp = list(zip(*yMat)[yIdx])       
+            yMatTmp = yMat[:, yIdx]       
             
             taskPredict = 0
             for kElement in bestKList:
                 taskPredict = 0
                 #get the result for cared data
-                #xCheckMat = mat([myUtils.getConstantValue(), 200, 10, 20, 180], dtype = float)            
-                #print xCheckMat
-                wr = regression.lwlr(xCheckMat, xMat,yMatTmp,kElement)
+                wr = regression.lwlr(xCheckMat, xMat,yMatTmp.T,kElement)
+                #wr = regression.standRegres(xMat,yMatTmp.T)
                 if (wr != None):
                     #print wr
-                    taskPredict = xCheckMat * wr + yMean[yIdx]
+                    taskPredict = xCheckMat * wr
                     #print taskPredict
-                    print "Task Size: %d, Predict Hours: %d Result[%d] is %f with k %f" % (tTSize, predictHours, yIdx, taskPredict, kElement)
+                    #print "Task Size: %d, Predict Hours: %d Result[%d] is %f with k %f" % (tTSize, predictHours, yIdx, taskPredict, kElement)
                     #print wr
                     break                       
             if taskPredict != 0:
-                preDictPerComponent.append(taskPredict)
+                tmp = taskPredict.reshape(-1).tolist() #sum only used for get the value but not the matrix
+                tmp = [j for i in tmp for j in i]
+                preDictPerComponent.extend(tmp) 
             else:
                 print "Error! Task Size: %d, Predict Hours: %d Task %d can not get predict value" % (tTSize, predictHours, yIdx)
         
-        preDictPerTask.append(sum(preDictPerComponent))
-    predictList.append([tTSize, max(preDictPerTask)])
+        #preDictPerTask.append(sum(preDictPerComponent))
+        preDictPerTask.extend(preDictPerComponent)
+    #predictList.append([tTSize, max(preDictPerTask)])
+    endIdx = int(len(preDictPerTask)/2)
+    for i in range(0, endIdx):
+        predictList.append([tTSize, preDictPerTask[i*2], preDictPerTask[i*2+1]])
 
 print predictList

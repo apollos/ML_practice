@@ -88,17 +88,21 @@ def ridgeTest(xArr,yArr):
     return wMat
 
 def regularize(xMat):#regularize by columns
-    inMat = xMat#xMat.copy()
+    inMat = xMat.copy()
     inMeans = mean(inMat,0)   #calc mean then subtract it off
-    inVar = var(inMat,0)      #calc variance of Xi then divide by it
-    inMat = (inMat - inMeans)/inVar
-    return inMat
+    inStd = std(inMat,0)      #calc std of Xi then divide by it
+    if(all(inStd) == False):#we have same features to cause std = 0
+        for i in range(0, shape(inMat)[1]):
+            if (inStd[:, i] == 0):
+                inStd[:, i] = max(inMat[:, i])
+    inMat = (inMat - inMeans)/inStd
+    return inMat, inMeans, inStd
 
 def stageWise(xArr,yArr,eps=0.01,numIt=100):
     xMat = mat(xArr); yMat=mat(yArr).T
     yMean = mean(yMat,0)
     yMat = yMat - yMean     #can also regularize ys but will get smaller coef
-    xMat = regularize(xMat)
+    xMat, xMeans, xStd = regularize(xMat)
     m,n=shape(xMat)
     #returnMat = zeros((numIt,n)) #testing code remove
     ws = zeros((n,1)); wsTest = ws.copy(); wsMax = ws.copy()
