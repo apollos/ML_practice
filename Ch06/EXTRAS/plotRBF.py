@@ -1,7 +1,7 @@
 '''
-Created on Nov 26, 2010
+Created on Nov 26, 2015
 
-@author: Peter
+@author: Song Yu
 '''
 from numpy import *
 import matplotlib

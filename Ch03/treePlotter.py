@@ -1,7 +1,7 @@
 '''
-Created on Oct 14, 2010
+Created on Oct 14, 2015
 
-@author: Peter Harrington
+@author: Song Yu
 '''
 import matplotlib.pyplot as plt
 

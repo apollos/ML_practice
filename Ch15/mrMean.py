@@ -1,7 +1,7 @@
 '''
 Created on Feb 28, 2011
 
-@author: Peter
+@author: Song Yu
 '''
 from mrjob.job import MRJob
 

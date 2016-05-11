@@ -1,7 +1,7 @@
 '''
-Created on Oct 27, 2010
+Created on Oct 27, 2015
 Logistic Regression Working Module
-@author: Peter
+@author: Song Yu
 '''
 from numpy import *
 
@@ -65,6 +65,7 @@ def stocGradAscent0(dataMatrix, classLabels):
 def stocGradAscent1(dataMatrix, classLabels, numIter=150):
     m,n = shape(dataMatrix)
     weights = ones(n)   #initialize to all ones
+    
     for j in range(numIter):
         dataIndex = range(m)
         for i in range(m):
@@ -72,7 +73,8 @@ def stocGradAscent1(dataMatrix, classLabels, numIter=150):
             randIndex = int(random.uniform(0,len(dataIndex)))#go to 0 because of the constant
             h = sigmoid(sum(dataMatrix[randIndex]*weights))
             error = classLabels[randIndex] - h
-            weights = weights + alpha * error * dataMatrix[randIndex]
+            medValue = alpha * error * dataMatrix[randIndex]
+            weights = weights + medValue
             del(dataIndex[randIndex])
     return weights
 
@@ -92,6 +94,7 @@ def colicTest():
         trainingSet.append(lineArr)
         trainingLabels.append(float(currLine[21]))
     trainWeights = stocGradAscent1(array(trainingSet), trainingLabels, 1000)
+    
     errorCount = 0; numTestVec = 0.0
     for line in frTest.readlines():
         numTestVec += 1.0
@@ -99,8 +102,10 @@ def colicTest():
         lineArr =[]
         for i in range(21):
             lineArr.append(float(currLine[i]))
-        if int(classifyVector(array(lineArr), trainWeights))!= int(currLine[21]):
-            errorCount += 1
+        predictV = int(classifyVector(array(lineArr), trainWeights))
+
+        if predictV != int(float(currLine[21])):
+            errorCount += 1               
     errorRate = (float(errorCount)/numTestVec)
     print "the error rate of this test is: %f" % errorRate
     return errorRate

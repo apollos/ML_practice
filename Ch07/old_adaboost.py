@@ -1,7 +1,7 @@
 '''
-Created on Nov 28, 2010
+Created on Nov 28, 2015
 Adaboost is short for Adaptive Boosting
-@author: Peter
+@author: Song Yu
 '''
 from numpy import *
 

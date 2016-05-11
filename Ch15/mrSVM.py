@@ -2,7 +2,7 @@
 Created on Feb 27, 2011
 MapReduce version of Pegasos SVM
 Using mrjob to automate job flow
-@author: Peter
+@author: Song Yu
 '''
 from mrjob.job import MRJob
 

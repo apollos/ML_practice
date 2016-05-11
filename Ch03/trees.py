@@ -1,7 +1,7 @@
 '''
-Created on Oct 12, 2010
+Created on Oct 12, 2015
 Decision Tree Source Code for Machine Learning in Action Ch. 3
-@author: Peter Harrington
+@author: Song Yu
 '''
 from math import log
 import operator

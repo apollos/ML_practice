@@ -1,7 +1,7 @@
 '''
 Created on Feb 16, 2011
 k Means Clustering for Ch10 of Machine Learning in Action
-@author: Peter Harrington
+@author: Song Yu
 '''
 from numpy import *
 

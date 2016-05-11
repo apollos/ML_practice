@@ -1,7 +1,7 @@
 '''
 Created on Mar 8, 2011
 
-@author: Peter
+@author: Song Yu
 '''
 from numpy import *
 from numpy import linalg as la

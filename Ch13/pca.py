@@ -1,7 +1,7 @@
 '''
 Created on Jun 1, 2011
 
-@author: Peter Harrington
+@author: Song Yu
 '''
 from numpy import *
 

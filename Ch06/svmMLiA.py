@@ -1,7 +1,7 @@
 '''
-Created on Nov 4, 2010
+Created on Nov 4, 2015
 Chapter 5 source file for Machine Learing in Action
-@author: Peter
+@author: Song Yu
 '''
 from numpy import *
 from time import sleep

@@ -1,7 +1,7 @@
 '''
 Created on Feb 4, 2011
 Tree-Based Regression Methods
-@author: Peter Harrington
+@author: Song Yu
 '''
 from numpy import *
 

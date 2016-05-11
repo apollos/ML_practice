@@ -1,7 +1,7 @@
 '''
-Created on Oct 27, 2010
+Created on Oct 27, 2015
 
-@author: Peter
+@author: Song Yu
 '''
 from numpy import *
 import kNN

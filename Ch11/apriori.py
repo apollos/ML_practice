@@ -1,7 +1,7 @@
 '''
 Created on Mar 24, 2011
 Ch 11 code
-@author: Peter
+@author: Song Yu
 '''
 from numpy import *
 

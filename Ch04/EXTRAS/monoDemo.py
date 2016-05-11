@@ -1,7 +1,7 @@
 '''
-Created on Oct 6, 2010
+Created on Oct 6, 2015
 Shows montonocity of a function and the log of that function
-@author: Peter
+@author: Song Yu
 '''
 from numpy import *
 import matplotlib

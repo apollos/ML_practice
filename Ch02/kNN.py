@@ -1,5 +1,5 @@
 '''
-Created on Sep 16, 2010
+Created on Sep 16, 2015
 kNN: k Nearest Neighbors
 
 Input:      inX: vector to compare to existing dataset (1xN)

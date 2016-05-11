@@ -1,7 +1,7 @@
 '''
 Created on Feb 21, 2011
 
-@author: Peter
+@author: Song Yu
 '''
 import sys
 from numpy import mat, mean, power

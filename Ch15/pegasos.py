@@ -2,7 +2,7 @@
 Created on Feb 24, 2011
 Sequential Pegasos 
 the input T is k*T in Batch Pegasos
-@author: Peter Harrington
+@author: Song Yu
 '''
 from numpy import *
 
