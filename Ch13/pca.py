@@ -19,14 +19,13 @@ def pca(dataMat, topNfeat=9999999):
     eigValInd = argsort(eigVals)            #sort, sort goes smallest to largest
     eigValInd = eigValInd[:-(topNfeat+1):-1]  #cut off unwanted dimensions
     redEigVects = eigVects[:,eigValInd]       #reorganize eig vects largest to smallest
+
+    reEigVals = eigVals[eigValInd]
+    total = sum(reEigVals)
+    varPercentage = reEigVals/total*100
+
     lowDDataMat = meanRemoved * redEigVects#transform data into new dimensions
     reconMat = (lowDDataMat * redEigVects.T) + meanVals
-    return lowDDataMat, reconMat
+    return lowDDataMat, reconMat, total, varPercentage
 
-def replaceNanWithMean(): 
-    datMat = loadDataSet('secom.data', ' ')
-    numFeat = shape(datMat)[1]
-    for i in range(numFeat):
-        meanVal = mean(datMat[nonzero(~isnan(datMat[:,i].A))[0],i]) #values that are not NaN (a number)
-        datMat[nonzero(isnan(datMat[:,i].A))[0],i] = meanVal  #set NaN values to mean
-    return datMat
+
